@@ -595,7 +595,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         camera2 = new Camera2(this);
         requestCamera();
         camera2.openCamera();
-
+        AudioEngine.pushSamples("pushToVideo");
     }
 
     @Override
@@ -1188,5 +1188,21 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         videoTexture.setSurfaceTextureListener(this);
     }
 
+
+    public static void pushToVideo (float [] data, int nframes) {
+        if (! mainActivity.running || ! mainActivity.camera2.mMuxerStarted)
+            return;
+
+        AVBuffer buffer = new AVBuffer();
+        buffer.size = nframes;
+        buffer.bytes = data.clone();
+
+        try {
+            avBuffer.put(buffer);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "pushToVideo: error adding avbuffer to queue", e);
+            throw new RuntimeException(e);
+        }
+    }
 }
 
