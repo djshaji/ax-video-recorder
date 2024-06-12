@@ -5,6 +5,15 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+    <TextureView
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_height="match_parent"
+        android:id="@+id/texture"/>
+
     <LinearLayout
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -86,8 +95,8 @@
             android:orientation="vertical">
 
             <ToggleButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:textOn=""
                 android:id="@+id/preview"
                 android:textOff=""
@@ -104,6 +113,15 @@
                 android:textStyle="bold" />
 
         </LinearLayout>
+        <ToggleButton
+            android:textOff=""
+            android:textOn=""
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/baseline_tune_24"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:id="@+id/show_effects"/>
         <ToggleButton
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -127,9 +145,18 @@
                 android:layout_height="wrap_content"
                 android:textOff=""
                 android:textOn=""
+                android:visibility="gone"
                 android:id="@+id/pause"
                 android:background="@android:color/transparent"
                 android:drawableLeft="@drawable/baseline_pause_circle_outline_24"/>
+            <ToggleButton
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:textOff=""
+                android:textOn=""
+                android:id="@+id/swap"
+                android:background="@android:color/transparent"
+                android:drawableLeft="@drawable/baseline_refresh_24"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -146,7 +173,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/l2"
-        app:layout_constraintBottom_toTopOf="@id/l3"
+        app:layout_constraintBottom_toTopOf="@id/effects"
         app:layout_constraintTop_toBottomOf="@id/l1"
         app:layout_constraintLeft_toLeftOf="parent"
         android:orientation="horizontal">
@@ -156,46 +183,54 @@
             android:layout_weight="1"/>
 
     </LinearLayout>
-    <LinearLayout
-        app:layout_constraintTop_toBottomOf="@id/l2"
-        app:layout_constraintBottom_toTopOf="@id/recycler"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/l3"
-        android:padding="10dp"
-        android:layout_margin="15dp"
-        android:background="@drawable/rounded_corners_transparent"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Presets"/>
 
-        <Spinner
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:id="@+id/presets"/>
-        <Button
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_margin="5dp"
-            android:background="@drawable/baseline_save_24"
-            android:id="@+id/add_preset"/>
-        <Button
-            android:layout_width="30dp"
-            android:id="@+id/delete_preset"
-            android:layout_height="30dp"
-            android:layout_margin="5dp"
-            android:background="@drawable/baseline_delete_forever_24"/>
-    </LinearLayout>
-    <androidx.recyclerview.widget.RecyclerView
+    <LinearLayout
         android:layout_width="match_parent"
-        app:layout_constraintTop_toBottomOf="@id/l3"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/effects"
         app:layout_constrainedHeight="true"
-        android:layout_margin="10dp"
-        android:id="@+id/recycler"/>
+
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/l2"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/l3"
+            android:padding="10dp"
+            android:layout_margin="15dp"
+            android:background="@drawable/rounded_corners_transparent"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Presets"/>
+
+            <Spinner
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/presets"/>
+            <Button
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/baseline_save_24"
+                android:id="@+id/add_preset"/>
+            <Button
+                android:layout_width="30dp"
+                android:id="@+id/delete_preset"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/baseline_delete_forever_24"/>
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:id="@+id/recycler"/>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

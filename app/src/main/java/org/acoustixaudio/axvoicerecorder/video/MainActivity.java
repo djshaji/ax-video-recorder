@@ -6,11 +6,13 @@ import static android.os.Environment.DIRECTORY_RECORDINGS;
 import static android.os.Environment.getExternalStorageDirectory;
 
 import android.app.AlertDialog;
+import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -44,6 +46,7 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.TextureView;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -96,15 +99,47 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.Manifest;
 import android.widget.Toolbar;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener {
+    private static final int PERMISSION_REQUEST_CODE_CAMERA = 2;
+
+    @Override
+    public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
+
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
+
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+
+    }
+
+    static class AVBuffer {
+        float [] bytes ;
+        int size ;
+    }
+
+    public static LinkedBlockingQueue <AVBuffer> avBuffer = new LinkedBlockingQueue<>();
     public static String TAG = "MainActivity";
     private static final int AUDIO_EFFECT_REQUEST = 0;
+    public ToggleButton swapCamera;
     boolean running = false;
     ExoPlayer mediaPlayer = null;
+    public TextureView videoTexture ;
+    Camera2 camera2 ;
     String dir, filename, basename ;
     JSONObject allPlugins;
     ArrayList<String> presetsForAdapter ;
@@ -149,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
         mainActivity = this;
         context = this;
 
-
         mediaPlayer = new ExoPlayer.Builder(context).build();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -170,6 +204,22 @@ public class MainActivity extends AppCompatActivity {
         if (! proVersion) {
             checkPurchase();
         }
+
+        videoTexture = findViewById(R.id.texture);
+        swapCamera = findViewById(R.id.swap);
+
+        swapCamera.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (running) {
+                    Toast.makeText(MainActivity.this, "Cannot switch camera while recording", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                camera2.closeCamera();
+                camera2.openCamera();
+            }
+        });
 
         AudioEngine.setExportFormat(2);
         dir = getExternalFilesDir(DIRECTORY_MUSIC).getPath();
@@ -213,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: sharing " + filename);
                 if (filename != null)
-                    shareFile(new File(filename + ".mp3"));
+                    shareFile(new File(filename + ".mp4"));
             }
         });
         lastPlayPause.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -238,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
                 if (! isPlaying) {
                     lastPlayPause.setChecked(false);
-                    MediaItem mediaItem = MediaItem.fromUri(filename + ".mp3");
+                    MediaItem mediaItem = MediaItem.fromUri(filename + ".mp4");
                     mediaPlayer.setMediaItem(mediaItem);
                     mediaPlayer.prepare();
                 }
@@ -288,6 +338,11 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy_HH.mm.ss");
+        Date date = new Date();
+        basename = formatter.format(date);
+        filename = new StringJoiner("/").add (dir).add (basename).toString();
+
         record.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -295,7 +350,6 @@ public class MainActivity extends AppCompatActivity {
                 buttonView.setCompoundDrawables(null, null, null, null);
                 if (isChecked) {
                     lastPlayPause.setChecked(false);
-                    pause.setEnabled(true);
 
                     elapsed = System.currentTimeMillis();
                     timer.setVisibility(View.VISIBLE);
@@ -306,17 +360,17 @@ public class MainActivity extends AppCompatActivity {
                     Date date = new Date();
                     basename = formatter.format(date);
                     filename = new StringJoiner("/").add (dir).add (basename).toString();
-                    AudioEngine.setFileName(filename);
                     applySettings();
                     Log.d(TAG, String.format ("[filename]: %s", filename));
 
                     if (! running)
                         startEffect();
 
-                    AudioEngine.toggleRecording(true);
                     lastRecordedBox.setVisibility(View.GONE);
                     buttonView.setCompoundDrawablesWithIntrinsicBounds(null,getResources().getDrawable(R.drawable.stop1),null,null);
+                    camera2.startRecording();
                 } else {
+                    camera2.stopRecording();
                     if (! preview.isChecked ())
                         stopEffect();
 
@@ -324,14 +378,11 @@ public class MainActivity extends AppCompatActivity {
                     lastRecordedBox.setVisibility(View.VISIBLE);
 
                     timer.setVisibility(View.GONE);
-                    MediaItem mediaItem = MediaItem.fromUri(filename + ".mp3");
+                    MediaItem mediaItem = MediaItem.fromUri(filename + ".mp4");
                     mediaPlayer.setMediaItem(mediaItem);
                     mediaPlayer.prepare();
 
                     buttonView.setCompoundDrawablesWithIntrinsicBounds(null,getResources().getDrawable(R.drawable.record_1),null,null);
-                    pause.setEnabled(false);
-                    if (pause.isChecked())
-                        pause.setChecked(false);
                     Log.i(TAG, "onCheckedChanged: set media item " + filename);
                 }
             }
@@ -500,6 +551,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ToggleButton toggleEffects = findViewById(R.id.show_effects);
+        LinearLayout effects = findViewById(R.id.effects);
+
+        toggleEffects.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked)
+                    effects.setVisibility(View.VISIBLE);
+                else
+                    effects.setVisibility(View.GONE);
+            }
+        });
+
         AudioEngine.create();
         AudioEngine.popFunction(); // this disables the meter output
         AudioEngine.setLibraryPath(getApplicationInfo().nativeLibraryDir);
@@ -527,6 +591,11 @@ public class MainActivity extends AppCompatActivity {
         if (proVersion) {
             ((TextView) findViewById(R.id.header_app_name)).setText("Premium");
         }
+
+        camera2 = new Camera2(this);
+        requestCamera();
+        camera2.openCamera();
+
     }
 
     @Override
@@ -844,8 +913,8 @@ public class MainActivity extends AppCompatActivity {
                         if (filename.equals("") || filename == null || filename.equals(oldName))
                             return;
 
-                        File file = new File(new StringJoiner("/").add (mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add (oldName).toString() + ".mp3");
-                        file.renameTo(new File(new StringJoiner("/").add (mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add (filename).toString() + ".mp3"))  ;
+                        File file = new File(new StringJoiner("/").add (mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add (oldName).toString() + ".mp4");
+                        file.renameTo(new File(new StringJoiner("/").add (mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add (filename).toString() + ".mp4"))  ;
                         mainActivity.lastFilename.setText(filename);
                     }
                 })
@@ -860,7 +929,7 @@ public class MainActivity extends AppCompatActivity {
                                 .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        File f = new File (filename + ".mp3");
+                                        File f = new File (filename + ".mp4");
                                         if (f.delete()) {
                                             Toast.makeText(MainActivity.this, "Recording deleted", Toast.LENGTH_SHORT).show();
                                             lastRecordedBox.setVisibility(View.GONE);
@@ -1105,5 +1174,19 @@ public class MainActivity extends AppCompatActivity {
 //            record.setChecked(false);
         }
     }
+
+    public void requestCamera() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.CAMERA},
+                    PERMISSION_REQUEST_CODE_CAMERA);
+            return;
+        }
+
+        videoTexture.setSurfaceTextureListener(this);
+    }
+
 }
 
