@@ -49,6 +49,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.StringJoiner;
 
 public class Camera2 {
     final String TAG = getClass().getSimpleName();
@@ -69,6 +70,8 @@ public class Camera2 {
     ByteBuffer[] audioInputBuffers ;
 
     private Surface mInputSurface;
+    public String filename;
+
     class Timestamp {
         long start = 0;
         long vidstart = 0;
@@ -293,7 +296,7 @@ public class Camera2 {
         releaseEncoder();
     }
 
-    private void prepareEncoder() {
+    public void prepareEncoder() {
         sampleRate = AudioEngine.getSampleRate() ;
         engineSampleRate = sampleRate ;
         Log.d(TAG, "prepareEncoder: got sample rate of " + sampleRate);
@@ -480,8 +483,11 @@ public class Camera2 {
 
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy_HH.mm.ss");
         Date date = new Date();
-        String outputPath = mainActivity.filename;
-        Log.d(TAG, String.format ("recording video to file: %s", mainActivity.filename));
+        String basename = formatter.format(date);
+        filename = new StringJoiner("/").add(mainActivity.dir).add(basename).toString();
+
+        String outputPath = filename + ".mp4";
+        Log.d(TAG, String.format ("recording video to file: %s", outputPath));
 
         try {
             mMuxer = new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -624,6 +630,7 @@ public class Camera2 {
         Log.d(TAG, "startRecording: ");
         mMuxer.start();
         mMuxerStarted = true;
+        mainActivity.filename = filename;
     }
 
     void stopRecording () {

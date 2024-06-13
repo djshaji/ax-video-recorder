@@ -128,40 +128,40 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     }
 
     static class AVBuffer {
-        float [] bytes ;
-        int size ;
+        float[] bytes;
+        int size;
     }
 
-    public static LinkedBlockingQueue <AVBuffer> avBuffer = new LinkedBlockingQueue<>();
+    public static LinkedBlockingQueue<AVBuffer> avBuffer = new LinkedBlockingQueue<>();
     public static String TAG = "MainActivity";
     private static final int AUDIO_EFFECT_REQUEST = 0;
     public ToggleButton swapCamera;
     boolean running = false;
     ExoPlayer mediaPlayer = null;
-    public TextureView videoTexture ;
-    Camera2 camera2 ;
-    String dir, filename, basename ;
+    public TextureView videoTexture;
+    Camera2 camera2;
+    String dir, filename, basename;
     JSONObject allPlugins;
-    ArrayList<String> presetsForAdapter ;
+    ArrayList<String> presetsForAdapter;
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     LinearLayout lastRecordedBox;
-    public static boolean proVersion = false ;
-    ArrayList <Integer> pluginIDs = new ArrayList<>();
+    public static boolean proVersion = false;
+    ArrayList<Integer> pluginIDs = new ArrayList<>();
     public static Context context;
     public static MainActivity mainActivity;
     TextView lastFilename;
-    String [] factoryPresets;
-    String presetsDir ;
+    String[] factoryPresets;
+    String presetsDir;
     RecyclerView recyclerView;
     DataAdapter dataAdapter;
     JSONObject ampModels, availablePlugins, availablePluginsLV2;
     static String[] sharedLibraries;
     static String[] sharedLibrariesLV2;
-    Spinner spinner ;
-    ArrayAdapter<String> adapter ;
-    static boolean prepared = false ;
-    static SharedPreferences defaultSharedPreferences ;
+    Spinner spinner;
+    ArrayAdapter<String> adapter;
+    static boolean prepared = false;
+    static SharedPreferences defaultSharedPreferences;
 
     static {
         System.loadLibrary("amprack");
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
         Log.d(TAG, "onCreate: purchased proVersion: " + proVersion);
 
-        if (! proVersion) {
+        if (!proVersion) {
             checkPurchase();
         }
 
@@ -224,27 +224,27 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         AudioEngine.setExportFormat(2);
         dir = getExternalFilesDir(DIRECTORY_MUSIC).getPath();
         File folder = getExternalFilesDir(DIRECTORY_MUSIC);
-        if (! folder.exists()) {
+        if (!folder.exists()) {
             if (!folder.mkdirs()) {
                 Toast.makeText(context, "Unable to create recording files directory", Toast.LENGTH_SHORT).show();
             } else {
                 Log.d(TAG, String.format("created folder: %s", folder.getAbsolutePath()));
             }
         } else {
-            Log.d(TAG, String.format ("folder exists: %s", folder.getAbsolutePath()));
+            Log.d(TAG, String.format("folder exists: %s", folder.getAbsolutePath()));
         }
 
         presetsDir = getExternalFilesDir(DIRECTORY_DOCUMENTS).getPath();
         File pD = getExternalFilesDir(DIRECTORY_DOCUMENTS);
-        if (! pD.exists()) {
+        if (!pD.exists()) {
             if (!pD.mkdirs()) {
                 Toast.makeText(context, "cannot create preset folder", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Log.d(TAG, String.format ("[preset dir]: %s", presetsDir));
+            Log.d(TAG, String.format("[preset dir]: %s", presetsDir));
         }
 
-        Log.d(TAG, String.format ("[dir]: %s", dir));
+        Log.d(TAG, String.format("[dir]: %s", dir));
         record = findViewById(R.id.record);
         lastFilename = findViewById(R.id.last_filename);
         ToggleButton lastPlayPause = findViewById(R.id.last_play);
@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             public void onIsPlayingChanged(boolean isPlaying) {
                 Log.i(TAG, "onIsPlayingChanged: " + isPlaying);
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
-                if (! isPlaying) {
+                if (!isPlaying) {
                     lastPlayPause.setChecked(false);
                     MediaItem mediaItem = MediaItem.fromUri(filename + ".mp4");
                     mediaPlayer.setMediaItem(mediaItem);
@@ -324,11 +324,11 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         r = new Runnable() {
             @Override
             public void run() {
-                if (mainActivity.running && ! pause.isChecked()) {
-                    ctime = System.currentTimeMillis() ;
-                    Duration d = Duration.ofMillis(ctime - elapsed) ;
-                    long minutes = d.getSeconds()/60 ;
-                    long seconds = d.getSeconds() ;
+                if (mainActivity.running && !pause.isChecked()) {
+                    ctime = System.currentTimeMillis();
+                    Duration d = Duration.ofMillis(ctime - elapsed);
+                    long minutes = d.getSeconds() / 60;
+                    long seconds = d.getSeconds();
                     if (minutes > 0)
                         seconds = seconds - minutes * 60;
 
@@ -341,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy_HH.mm.ss");
         Date date = new Date();
         basename = formatter.format(date);
-        filename = new StringJoiner("/").add (dir).add (basename).toString();
+        filename = new StringJoiner("/").add(dir).add(basename).toString();
 
         record.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -356,25 +356,23 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     clock.setText("00:00");
                     handler.postDelayed(r, 1000);
 
-                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy_HH.mm.ss");
-                    Date date = new Date();
-                    basename = formatter.format(date);
-                    filename = new StringJoiner("/").add (dir).add (basename).toString();
                     applySettings();
-                    Log.d(TAG, String.format ("[filename]: %s", filename));
+                    Log.d(TAG, String.format("[filename]: %s", filename));
 
-                    if (! running)
+                    if (!running)
                         startEffect();
 
                     lastRecordedBox.setVisibility(View.GONE);
-                    buttonView.setCompoundDrawablesWithIntrinsicBounds(null,getResources().getDrawable(R.drawable.stop1),null,null);
+                    buttonView.setCompoundDrawablesWithIntrinsicBounds(null, getResources().getDrawable(R.drawable.stop1), null, null);
+                    AudioEngine.toggleVideoRecording(true);
                     camera2.startRecording();
                 } else {
+                    AudioEngine.toggleVideoRecording(false);
                     camera2.stopRecording();
-                    if (! preview.isChecked ())
+                    if (!preview.isChecked())
                         stopEffect();
 
-                    lastFilename.setText(new File (filename).getName());
+                    lastFilename.setText(new File(filename).getName());
                     lastRecordedBox.setVisibility(View.VISIBLE);
 
                     timer.setVisibility(View.GONE);
@@ -382,8 +380,12 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     mediaPlayer.setMediaItem(mediaItem);
                     mediaPlayer.prepare();
 
-                    buttonView.setCompoundDrawablesWithIntrinsicBounds(null,getResources().getDrawable(R.drawable.record_1),null,null);
+                    buttonView.setCompoundDrawablesWithIntrinsicBounds(null, getResources().getDrawable(R.drawable.record_1), null, null);
                     Log.i(TAG, "onCheckedChanged: set media item " + filename);
+
+                    camera2.closeCamera();
+                    camera2 = new Camera2(mainActivity);
+                    camera2.openCamera();
                 }
             }
         });
@@ -420,17 +422,17 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                 if (isChecked) {
                     buttonView.setButtonDrawable(getResources().getDrawable(R.drawable.baseline_volume_off_24));
                     AudioEngine.setOutputVolume(1f);
-                    if (! running)
+                    if (!running)
                         startEffect();
                     else
                         Log.i(TAG, "onCheckedChanged: effect already running");
                 } else {
                     buttonView.setButtonDrawable(getResources().getDrawable(R.drawable.baseline_volume_up_24));
                     AudioEngine.setOutputVolume(0f);
-                    if (! isRecordPermissionGranted())
+                    if (!isRecordPermissionGranted())
                         return;
 
-                    if (! record.isChecked()) {
+                    if (!record.isChecked()) {
                         stopEffect();
                     }
                 }
@@ -500,12 +502,12 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         recyclerView.setAdapter(dataAdapter);
 
         factoryPresets = dataAdapter.getFactoryPresets();
-        Log.d(TAG, String.format ("factory presets: %s", factoryPresets));
+        Log.d(TAG, String.format("factory presets: %s", factoryPresets));
 
         presetsForAdapter = new ArrayList<>(Arrays.asList(factoryPresets));
-        File [] userPresets = getExternalFilesDir(DIRECTORY_DOCUMENTS).listFiles();
-        Log.d(TAG, String.format ("[user presets]: %d", userPresets.length));
-        for (File file: userPresets) {
+        File[] userPresets = getExternalFilesDir(DIRECTORY_DOCUMENTS).listFiles();
+        Log.d(TAG, String.format("[user presets]: %d", userPresets.length));
+        for (File file : userPresets) {
             presetsForAdapter.add(file.getName());
         }
 
@@ -528,7 +530,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 int selection = spinner.getSelectedItemPosition();
                 if (selection < factoryPresets.length) {
-                    JSONObject preset = loadJSONFromAssetFile(context, new StringBuffer("presets/").append(factoryPresets [selection]).toString());
+                    JSONObject preset = loadJSONFromAssetFile(context, new StringBuffer("presets/").append(factoryPresets[selection]).toString());
                     Log.d(TAG, String.format("%d: %s", selection, preset));
                     recyclerView.scrollToPosition(8);
                     if (preset != null)
@@ -536,8 +538,8 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     recyclerView.scrollToPosition(0);
                 } else {
                     try {
-                        String preset = Files.readAllLines (Paths.get (new StringJoiner ("/").add(getExternalFilesDir(DIRECTORY_DOCUMENTS).getPath()).add((CharSequence) spinner.getAdapter().getItem(selection)).toString())).get(0).toString();
-                        Log.d(TAG, String.format ("[user preset] %d: %s", selection, preset));
+                        String preset = Files.readAllLines(Paths.get(new StringJoiner("/").add(getExternalFilesDir(DIRECTORY_DOCUMENTS).getPath()).add((CharSequence) spinner.getAdapter().getItem(selection)).toString())).get(0).toString();
+                        Log.d(TAG, String.format("[user preset] %d: %s", selection, preset));
                         dataAdapter.loadPreset(preset);
                     } catch (IOException e) {
                         Log.e(TAG, "onItemSelected: ", e);
@@ -557,7 +559,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         toggleEffects.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked)
+                if (isChecked)
                     effects.setVisibility(View.VISIBLE);
                 else
                     effects.setVisibility(View.GONE);
@@ -565,12 +567,14 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         });
 
         AudioEngine.create();
-        AudioEngine.popFunction(); // this disables the meter output
+//        AudioEngine.popFunction(); // this disables the meter output
         AudioEngine.setLibraryPath(getApplicationInfo().nativeLibraryDir);
         AudioEngine.setLazyLoad(true);
         AudioEngine.pushToLockFreeBeforeOutputVolumeAaaaaargh(true);
 
         AudioEngine.setOutputVolume(0f);
+        AudioEngine.setTunerEnabled(false);
+        AudioEngine.toggleMixer(false);
 
         availablePlugins = loadJSONFromAssetFile(this, "all_plugins.json");
         availablePluginsLV2 = loadJSONFromAssetFile(this, "lv2_plugins.json");
@@ -595,7 +599,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         camera2 = new Camera2(this);
         requestCamera();
         camera2.openCamera();
-        AudioEngine.pushSamples("pushToVideo");
+//        AudioEngine.pushSamples("pushToVideo");
     }
 
     @Override
@@ -649,7 +653,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
         Log.d(TAG, "Playing, attempting to stop, state: " + running);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        running = ! AudioEngine.setEffectOn(false);
+        running = !AudioEngine.setEffectOn(false);
     }
 
     private boolean isRecordPermissionGranted() {
@@ -679,7 +683,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             return null;
         }
 
-        JSONObject jsonObject = null ;
+        JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(json);
         } catch (JSONException e) {
@@ -705,8 +709,8 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         dataAdapter.addItem(pluginID, ret);
     }
 
-    void printPlugins () {
-        JSONObject plugins = mainActivity.availablePluginsLV2 ;
+    void printPlugins() {
+        JSONObject plugins = mainActivity.availablePluginsLV2;
         Iterator<String> keys = plugins.keys();
 
         while (keys.hasNext()) {
@@ -717,7 +721,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     JSONObject object = plugins.getJSONObject(key);
                     String name = object.getString("name");
                     String id = object.getString("id");
-                    Log.d(TAG, String.format ("[LV2 plugin] %s: %s", id, name));
+                    Log.d(TAG, String.format("[LV2 plugin] %s: %s", id, name));
 //                    mainActivity.pluginDialogAdapter.addItem(Integer.parseInt(key), name, Integer.parseInt(id));
                 }
             } catch (JSONException e) {
@@ -725,7 +729,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             }
         }
 
-        plugins = mainActivity.availablePlugins ;
+        plugins = mainActivity.availablePlugins;
         keys = plugins.keys();
 
         while (keys.hasNext()) {
@@ -744,13 +748,13 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         }
     }
 
-    public static String getLV2Info (String libraryName, String plugin) {
-        String pluginName ;
+    public static String getLV2Info(String libraryName, String plugin) {
+        String pluginName;
         if (plugin.indexOf("#") != -1)
             pluginName = plugin.split("#")[1];
         else {
-            String [] p = plugin.split("/");
-            pluginName = p [p.length -1];
+            String[] p = plugin.split("/");
+            pluginName = p[p.length - 1];
         }
 
         Log.d(TAG, "getLV2Info: lv2/" + libraryName + "/" + pluginName + ".json");
@@ -758,7 +762,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         return jsonObject.toString();
     }
 
-    public void loadPlugins () {
+    public void loadPlugins() {
         pluginIDs.clear();
         allPlugins = loadJSONFromAssetFile(context, "voice.json");
         Iterator<String> keys = allPlugins.keys();
@@ -770,7 +774,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                 if (allPlugins.get(key) instanceof JSONObject) {
                     JSONObject object = allPlugins.getJSONObject(key);
                     String name = object.getString("name");
-                    addPluginToRack (Integer.parseInt(key));
+                    addPluginToRack(Integer.parseInt(key));
                     pluginIDs.add(Integer.parseInt(key));
 
 //                    AudioEngine.togglePlugin(index, false);
@@ -779,42 +783,42 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                 e.printStackTrace();
             }
 
-            index ++ ;
+            index++;
         }
     }
 
-    public void saveUserPreset () {
+    public void saveUserPreset() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         LinearLayout linearLayout = (LinearLayout) inflater.inflate(R.layout.get_filename, null);
         TextView textView = linearLayout.findViewById(R.id.filename);
         builder.setView(linearLayout)
-               .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                   @Override
-                   public void onClick(DialogInterface dialog, int id) {
-                       CharSequence filename = textView.getText() ;
-                       if (filename.equals("") || filename == null)
-                           return;
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        CharSequence filename = textView.getText();
+                        if (filename.equals("") || filename == null)
+                            return;
 
-                       String preset = getPreset();
-                       String fullFilename = new StringJoiner ("/").add(presetsDir).add(filename).toString();
-                       Log.d(TAG, String.format ("write preset: %s", fullFilename));
-                       File file = new File(dir, String.valueOf(fullFilename));
-                       FileWriter writer = null;
-                       if (! Objects.requireNonNull(getExternalFilesDir(DIRECTORY_DOCUMENTS)).exists())
-                           Log.e(TAG, "onClick: presets directory does not exist!" );
-                       if (writeFile(fullFilename, preset)) {
-                           Toast.makeText(MainActivity.this, "Saved preset to file: " + filename, Toast.LENGTH_SHORT).show();
-                           addToSpinner(String.valueOf(filename));
-                       }
-                   }
-               })
-               .setNegativeButton("Cancel", null);
+                        String preset = getPreset();
+                        String fullFilename = new StringJoiner("/").add(presetsDir).add(filename).toString();
+                        Log.d(TAG, String.format("write preset: %s", fullFilename));
+                        File file = new File(dir, String.valueOf(fullFilename));
+                        FileWriter writer = null;
+                        if (!Objects.requireNonNull(getExternalFilesDir(DIRECTORY_DOCUMENTS)).exists())
+                            Log.e(TAG, "onClick: presets directory does not exist!");
+                        if (writeFile(fullFilename, preset)) {
+                            Toast.makeText(MainActivity.this, "Saved preset to file: " + filename, Toast.LENGTH_SHORT).show();
+                            addToSpinner(String.valueOf(filename));
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null);
 
         builder.show();
     }
 
-    public boolean writeFile (String filename, String preset) {
+    public boolean writeFile(String filename, String preset) {
         File myFile = new File(filename);
 
         try {
@@ -832,7 +836,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         }
     }
 
-    public void addToSpinner (String name) {
+    public void addToSpinner(String name) {
         presetsForAdapter.add(name);
         adapter = new ArrayAdapter<String>(mainActivity,
                 android.R.layout.simple_spinner_item, presetsForAdapter);
@@ -842,15 +846,15 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         spinner.setSelection(adapter.getCount() - 1);
     }
 
-    public void deleteUserPreset () {
+    public void deleteUserPreset() {
         if (spinner.getSelectedItemPosition() < factoryPresets.length) {
             Toast.makeText(context, "Factory preset cannot be deleted", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String preset = spinner.getSelectedItem().toString();
-        File file = new File(new StringJoiner("/").add (getExternalFilesDir(DIRECTORY_DOCUMENTS).getPath()).add("/").add (preset).toString());
-        Log.d(TAG, String.format ("[delete]: %s", file.getAbsolutePath()));
+        File file = new File(new StringJoiner("/").add(getExternalFilesDir(DIRECTORY_DOCUMENTS).getPath()).add("/").add(preset).toString());
+        Log.d(TAG, String.format("[delete]: %s", file.getAbsolutePath()));
         if (!file.delete())
             Toast.makeText(context, "Cannot delete preset: " + preset, Toast.LENGTH_SHORT).show();
         else {
@@ -870,7 +874,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         Intent intentShareFile = new Intent(Intent.ACTION_SEND);
         Uri contentUri = null;
         try {
-            contentUri = FileProvider.getUriForFile(context, "org.acoustixaudio.axvoicerecorder.fileprovider", file);
+            contentUri = FileProvider.getUriForFile(context, "org.acoustixaudio.axvoicerecorder.video.fileprovider", file);
         } catch (IllegalArgumentException illegalArgumentException) {
             Log.e(TAG, "shareFile: ", illegalArgumentException);
             Toast.makeText(context, illegalArgumentException.getMessage(), Toast.LENGTH_SHORT).show();
@@ -895,7 +899,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         mediaPlayer.stop();
     }
 
-    public void renameFile (String oldName, int position) {
+    public void renameFile(String oldName, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = mainActivity.getLayoutInflater();
         LinearLayout linearLayout = (LinearLayout) inflater.inflate(R.layout.get_filename, null);
@@ -909,12 +913,12 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        CharSequence filename = textView.getText() ;
+                        CharSequence filename = textView.getText();
                         if (filename.equals("") || filename == null || filename.equals(oldName))
                             return;
 
-                        File file = new File(new StringJoiner("/").add (mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add (oldName).toString() + ".mp4");
-                        file.renameTo(new File(new StringJoiner("/").add (mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add (filename).toString() + ".mp4"))  ;
+                        File file = new File(new StringJoiner("/").add(mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add(oldName).toString() + ".mp4");
+                        file.renameTo(new File(new StringJoiner("/").add(mainActivity.getExternalFilesDir(DIRECTORY_MUSIC).getAbsolutePath()).add(filename).toString() + ".mp4"));
                         mainActivity.lastFilename.setText(filename);
                     }
                 })
@@ -929,7 +933,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                                 .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        File f = new File (filename + ".mp4");
+                                        File f = new File(filename + ".mp4");
                                         if (f.delete()) {
                                             Toast.makeText(MainActivity.this, "Recording deleted", Toast.LENGTH_SHORT).show();
                                             lastRecordedBox.setVisibility(View.GONE);
@@ -945,7 +949,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         builder.show();
     }
 
-    public static void applySettings () {
+    public static void applySettings() {
         String input = defaultSharedPreferences.getString("input", "-1");
         String output = defaultSharedPreferences.getString("output", "-1");
         Log.d(TAG, "applyPreferences: [devices] " + String.format("input: %s, output: %s", input, output));
@@ -956,9 +960,9 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         ));
 
         try {
-            if (!input.equals("default") && ! input.equals("-1"))
+            if (!input.equals("default") && !input.equals("-1"))
                 AudioEngine.setRecordingDeviceId(new Integer(input));
-            if (!output.equals("default") && ! input.equals("-1"))
+            if (!output.equals("default") && !input.equals("-1"))
                 AudioEngine.setPlaybackDeviceId(new Integer(output));
 
             AudioEngine.setLamePreset(Integer.parseInt(defaultSharedPreferences.getString("lame_preset", "1001")));
@@ -993,24 +997,24 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
     }
 
-    public static String getPreset1 () {
+    public static String getPreset1() {
         JSONObject jsonObject = loadJSONFromAssetFile(context, "voice.json");
         Iterator<String> keys = jsonObject.keys();
 
         JSONObject preset = new JSONObject();
-        int counter = 0 ;
+        int counter = 0;
 
         try {
             while (keys.hasNext()) {
                 String key = keys.next();
                 JSONObject plugin = jsonObject.getJSONObject(key);
-                Log.d(TAG, String.format ("[plugin]: %s", plugin));
+                Log.d(TAG, String.format("[plugin]: %s", plugin));
                 JSONObject controls = plugin.getJSONObject("controls");
 
                 JSONObject pluginControls = new JSONObject();
-                Iterator <String> control = controls.keys();
+                Iterator<String> control = controls.keys();
 
-                int cnt = 0 ;
+                int cnt = 0;
                 while (control.hasNext()) {
                     String c = control.next();
                     JSONObject cont = controls.getJSONObject(c);
@@ -1020,25 +1024,25 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                         pluginControls.put(String.valueOf(cnt++), AudioEngine.getActivePluginValueByIndex(counter, cont.getInt("index")));
                     else {
                         JSONArray jsonArray = cont.getJSONArray("index");
-                        for (int index = 0 ; index < jsonArray.length(); index ++) {
+                        for (int index = 0; index < jsonArray.length(); index++) {
                             pluginControls.put(String.valueOf(cnt++), AudioEngine.getActivePluginValueByIndex(counter, index));
                         }
                     }
                 }
 
                 preset.put(String.valueOf(counter), pluginControls);
-                counter ++ ;
+                counter++;
             }
         } catch (JSONException jsonException) {
             Log.e(TAG, "getPreset: ", jsonException);
             Toast.makeText(context, jsonException.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
-        Log.d(TAG, String.format ("[preset]: %s", preset.toString()));
+        Log.d(TAG, String.format("[preset]: %s", preset.toString()));
         return preset.toString();
     }
 
-    public static String getPreset () {
+    public static String getPreset() {
         int plugins = AudioEngine.getActivePlugins();
         JSONObject preset = new JSONObject();
 
@@ -1046,7 +1050,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             for (int i = 0; i < plugins; i++) {
                 JSONObject plugin = new JSONObject();
                 plugin.put("active", AudioEngine.getActivePluginEnabled(i));
-                float [] values = AudioEngine.getActivePluginValues(i);
+                float[] values = AudioEngine.getActivePluginValues(i);
                 JSONArray arrayList = new JSONArray(values);
 
                 plugin.put("controls", arrayList);
@@ -1063,23 +1067,23 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         return preset.toString();
     }
 
-    public void loadPreset (JSONObject jsonObject) {
+    public void loadPreset(JSONObject jsonObject) {
         dataAdapter.clear();
 //        Log.d(TAG, "loadPreset: default: " + getPreset());
-        Log.d(TAG, String.format ("[loading plugins from preset (%d)]: %s", jsonObject.length(), jsonObject));
+        Log.d(TAG, String.format("[loading plugins from preset (%d)]: %s", jsonObject.length(), jsonObject));
         try {
-            for (int key = 0 ; key < jsonObject.length() ; key ++) {
+            for (int key = 0; key < jsonObject.length(); key++) {
                 JSONObject object = jsonObject.getJSONObject(String.valueOf(key));
                 JSONArray con = object.getJSONArray("controls");
 
-                Log.d(TAG, String.format ("[%d: %s]: %s", key, object.getString("name"), con));
+                Log.d(TAG, String.format("[%d: %s]: %s", key, object.getString("name"), con));
                 AudioEngine.togglePlugin(key, object.getBoolean("active"));
-                for (int a = 0 ; a < con.length() ; a++) {
+                for (int a = 0; a < con.length(); a++) {
                     AudioEngine.setPluginControl(key, a, (float) con.getDouble(a));
-                    Log.i(TAG, "loadPreset: " + String.format ("%d %d: %f", key, a, con.getDouble(a)));
+                    Log.i(TAG, "loadPreset: " + String.format("%d %d: %f", key, a, con.getDouble(a)));
                 }
 
-                Log.d(TAG, String.format ("[addItem] %d: %d", pluginIDs.get(key), key));
+                Log.d(TAG, String.format("[addItem] %d: %d", pluginIDs.get(key), key));
                 dataAdapter.addItem(pluginIDs.get(key), key);
             }
         } catch (JSONException e) {
@@ -1090,7 +1094,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 //        loadPlugins();
     }
 
-    public void checkPurchase () {
+    public void checkPurchase() {
         acknowledgePurchaseResponseListener = new AcknowledgePurchaseResponseListener() {
             @Override
             public void onAcknowledgePurchaseResponse(@NonNull BillingResult billingResult) {
@@ -1189,8 +1193,8 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     }
 
 
-    public static void pushToVideo (float [] data, int nframes) {
-        if (! mainActivity.running || ! mainActivity.camera2.mMuxerStarted)
+    public static void pushToVideo(float[] data, int nframes) {
+        if (!mainActivity.running || !mainActivity.camera2.mMuxerStarted)
             return;
 
         AVBuffer buffer = new AVBuffer();
@@ -1204,5 +1208,16 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             throw new RuntimeException(e);
         }
     }
-}
 
+    static void setMixerMeterSwitch(float inputValue, boolean isInput) {
+
+    }
+
+    static void setTuner(float[] data, int size) {
+
+    }
+
+    public static void setSampleRateDisplay (int sampleRateDisplay, boolean lowLatency) {
+
+    }
+}
