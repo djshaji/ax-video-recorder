@@ -19,6 +19,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
@@ -119,7 +121,7 @@ public class Tracks extends Fragment {
         });
 
         player = new ExoPlayer.Builder(context).build();
-        player.setVideoScalingMode (C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        player.setVideoScalingMode (C.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         tracksAdapter.player = player;
 
         playPause = view.findViewById(R.id.tracks_play);
@@ -181,6 +183,13 @@ public class Tracks extends Fragment {
                 if (playbackState == Player.EVENT_PLAYBACK_STATE_CHANGED)
                     playPause.setChecked(false);
 
+            }
+
+            @Override
+            public void onPlayerError(PlaybackException error) {
+                Player.Listener.super.onPlayerError(error);
+                Log.e(TAG, "onPlayerError: ", error);
+                Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 

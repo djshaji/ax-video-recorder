@@ -35,9 +35,31 @@
         <DropDownPreference
             android:title="MP3 Encode Preset"
             android:key="lame_preset"
+            app:isPreferenceVisible="false"
             android:defaultValue="1001"
             android:entries="@array/mp3_presets"
             android:entryValues="@array/mp3_presets_values"/>
+        <ListPreference
+            android:title="Video Size"
+            app:key="vsize"
+            android:entries="@array/sizes"
+            android:entryValues="@array/sizes"/>
+        <SeekBarPreference
+            android:title="Video Bitrate"
+            app:min="300"
+            app:showSeekBarValue="true"
+            android:summary="in Kbps"
+            android:max="10000"
+            android:defaultValue="1000"
+            app:key="vbitrate"/>
+        <SeekBarPreference
+            android:title="Audio Bitrate"
+            app:min="32"
+            app:showSeekBarValue="true"
+            android:summary="in Kbps"
+            android:max="320"
+            android:defaultValue="160"
+            app:key="abitrate"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

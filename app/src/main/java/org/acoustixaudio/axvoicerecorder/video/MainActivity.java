@@ -72,6 +72,7 @@ import org.json.JSONObject;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     Spinner spinner;
     ArrayAdapter<String> adapter;
     static boolean prepared = false;
-    static SharedPreferences defaultSharedPreferences;
+    public static SharedPreferences defaultSharedPreferences;
 
     static {
         System.loadLibrary("amprack");
@@ -190,6 +191,10 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         super.onCreate(savedInstanceState);
         mainActivity = this;
         context = this;
+
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         mediaPlayer = new ExoPlayer.Builder(context).build();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -291,6 +296,13 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         });
 
         SurfaceView surfaceView = findViewById(R.id.video);
+        surfaceView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lastPlayPause.setChecked(false);
+            }
+        });
+
         mFilename = null ;
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -617,6 +629,14 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     effects.setVisibility(View.VISIBLE);
                 else
                     effects.setVisibility(View.GONE);
+            }
+        });
+
+        Button settingsButton = findViewById(R.id.settings_button);
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(context, SettingsActivity.class));
             }
         });
 
@@ -950,7 +970,9 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     @Override
     protected void onStop() {
         super.onStop();
-        mediaPlayer.stop();
+        if (mediaPlayer.isPlaying())
+            mediaPlayer.stop();
+        camera2.closeCamera();
     }
 
     public void renameFile(String oldName, int position) {
@@ -1273,5 +1295,11 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
     public static void setSampleRateDisplay (int sampleRateDisplay, boolean lowLatency) {
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        camera2.openCamera();
     }
 }

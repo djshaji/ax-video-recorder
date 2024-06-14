@@ -1,5 +1,6 @@
 package org.acoustixaudio.axvoicerecorder.video;
 
+import android.content.SharedPreferences;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -36,6 +37,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
 
 import com.shajikhan.ladspa.amprack.AudioEngine;
 
@@ -55,6 +57,8 @@ public class Camera2 {
     final String TAG = getClass().getSimpleName();
     public boolean recording = false ;
     int sampleRate = 48000;
+    public static List<String> videoSizes = new ArrayList<>() ;
+    public int videoWidth = 720, videoHeight = 1280;
     int MAX_AUDIO_INPUT = 16384 ;
     // parameters for the encoder
     private static final String MIME_TYPE = "video/avc";    // H.264 Advanced Video Coding
@@ -72,6 +76,7 @@ public class Camera2 {
 
     private Surface mInputSurface;
     public String filename;
+    private SharedPreferences preferences;
 
     class Timestamp {
         long start = 0;
@@ -139,6 +144,13 @@ public class Camera2 {
 
 //        Log.d(TAG, String.format ("[audio] set sample rate: %d", sampleRate));
         timestamp = new Timestamp();
+        preferences = PreferenceManager.getDefaultSharedPreferences(mainActivity);
+
+        videoSizes.add("1920x1080");
+        videoSizes.add("1280x720");
+        videoSizes.add("640x360");
+        videoSizes.add("320x180");
+
     }
 
     public void openCamera() {
@@ -168,7 +180,13 @@ public class Camera2 {
             assert map != null;
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
             ///| fixme: get this from somewhere else
-            imageDimension = new Size(720, 1280);
+
+            String dimen = preferences.getString("vsize", "1280x720");
+            videoWidth = Integer.parseInt(dimen.split("x")[0]);
+            videoHeight = Integer.parseInt(dimen.split("x")[1]);
+            Log.i(TAG, String.format ("openCamera: using resolution %d x %d", videoWidth, videoHeight));
+
+            imageDimension = new Size(videoWidth, videoHeight);
             if (ActivityCompat.checkSelfPermission(mainActivity, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
@@ -184,6 +202,7 @@ public class Camera2 {
             e.printStackTrace();
         }
         Log.e(TAG, "openCamera X");
+
     }
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
@@ -238,7 +257,7 @@ public class Camera2 {
             SurfaceTexture texture = textureView.getSurfaceTexture();
             assert texture != null;
             // fixme: change this!
-            imageDimension = new Size (1280, 720);
+            imageDimension = new Size (videoWidth, videoHeight);
             texture.setDefaultBufferSize(imageDimension.getWidth(), imageDimension.getHeight());
             Log.d(TAG, "createCameraPreview: created surface with dimensions" + ":".format (" %d x %d", imageDimension.getWidth(), imageDimension.getHeight()));
             Surface surface = new Surface(texture);
@@ -320,7 +339,7 @@ public class Camera2 {
         ///| Todo: fixme: get width and height from camera
         mWidth = imageDimension.getWidth();
         mHeight = imageDimension.getHeight();
-        mBitRate = 1000000;
+        mBitRate = preferences.getInt ("vbitrate", 1000) * 1000;
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
 
         // Set some properties.  Failing to specify some of these can cause the MediaCodec
@@ -342,7 +361,7 @@ public class Camera2 {
         MediaFormat outputFormat = new MediaFormat();
         outputFormat.setString(MediaFormat.KEY_MIME, "audio/mp4a-latm");
         outputFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-        outputFormat.setInteger(MediaFormat.KEY_BIT_RATE, 160000);
+        outputFormat.setInteger(MediaFormat.KEY_BIT_RATE, preferences.getInt("abitrate", 160) * 1000);
         outputFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, MAX_AUDIO_INPUT);
         outputFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
         outputFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate);

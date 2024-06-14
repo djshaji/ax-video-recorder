@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="sizes">
+        <item>1920x1080</item>
+        <item>1280x720</item>
+        <item>640x360</item>
+        <item>320x180</item>
+    </string-array>
     <string-array name="tap_plugins">
         <item>tap_autopan.so</item>
         <item>tap_chorusflanger.so</item>
