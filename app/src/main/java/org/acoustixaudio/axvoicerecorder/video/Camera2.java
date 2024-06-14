@@ -53,6 +53,7 @@ import java.util.StringJoiner;
 
 public class Camera2 {
     final String TAG = getClass().getSimpleName();
+    public boolean recording = false ;
     int sampleRate = 48000;
     int MAX_AUDIO_INPUT = 16384 ;
     // parameters for the encoder
@@ -244,13 +245,21 @@ public class Camera2 {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
 
-            prepareEncoder();
-            captureRequestBuilder.addTarget(mInputSurface);
+            if (recording) {
+                prepareEncoder();
+                captureRequestBuilder.addTarget(mInputSurface);
+            }
+
             List<Surface> surfaceList = new ArrayList<>();
             surfaceList.add(surface);
-            surfaceList.add(mInputSurface);
 
-            cameraDevice.createCaptureSession(Arrays.asList(surface,mInputSurface), new CameraCaptureSession.StateCallback() {
+            if (recording)
+                surfaceList.add(mInputSurface);
+
+            List<Surface> aList = Arrays.asList(surface);
+            if (recording)
+                aList = Arrays.asList(surface,mInputSurface) ;
+            cameraDevice.createCaptureSession(aList, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     //The camera is already closed
@@ -469,6 +478,8 @@ public class Camera2 {
                 audioTrackIndex = mMuxer.addTrack(codec.getOutputFormat());
                 Log.d(TAG, String.format("[audio]: added audio track [%d] with format %s",
                         audioTrackIndex, codec.getOutputFormat()));
+                if (audioTrackIndex != -1 && mTrackIndex != -1)
+                    startRecording();
             }
         });
 
@@ -577,6 +588,8 @@ public class Camera2 {
                 // now that we have the Magic Goodies, start the muxer
 //                if (mTrackIndex == -1)
                 mTrackIndex = mMuxer.addTrack(newFormat);
+                if (audioTrackIndex != -1 && mTrackIndex != -1)
+                    startRecording();
 
 //                if (audioTrackIndex == -1)
 //                    return;

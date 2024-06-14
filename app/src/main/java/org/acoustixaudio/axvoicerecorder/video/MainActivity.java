@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.video.VideoSize;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 import com.shajikhan.ladspa.amprack.AudioEngine;
@@ -46,6 +47,8 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 
@@ -75,6 +78,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -106,6 +110,9 @@ import android.widget.Toolbar;
 
 public class MainActivity extends AppCompatActivity implements TextureView.SurfaceTextureListener {
     private static final int PERMISSION_REQUEST_CODE_CAMERA = 2;
+    private String mFilename;
+    private FrameLayout frame;
+    LinearLayout l1 ;
 
     @Override
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
@@ -190,6 +197,8 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 //        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
         defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        l1 = findViewById(R.id.l1);
 
         try {
             proVersion = defaultSharedPreferences.getBoolean("pro", false);
@@ -281,16 +290,45 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             }
         });
 
+        SurfaceView surfaceView = findViewById(R.id.video);
+        mFilename = null ;
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                mediaPlayer.setVideoSurface(holder.getSurface());
+            }
+
+            @Override
+            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+
+            }
+
+            @Override
+            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+
+            }
+        });
+
+        frame = findViewById(R.id.frame);
+
         mediaPlayer.addListener(new Player.Listener() {
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
                 Log.i(TAG, "onIsPlayingChanged: " + isPlaying);
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
                 if (!isPlaying) {
+                    frame.setVisibility(View.GONE);
                     lastPlayPause.setChecked(false);
                     MediaItem mediaItem = MediaItem.fromUri(filename + ".mp4");
                     mediaPlayer.setMediaItem(mediaItem);
                     mediaPlayer.prepare();
+                    Log.i(TAG, "set media item to " + filename + ".mp4");
+                    videoTexture.setVisibility(View.VISIBLE);
+                    l1.setVisibility(View.VISIBLE);
+                } else {
+                    videoTexture.setVisibility(View.GONE);
+                    l1.setVisibility(View.GONE);
+                    frame.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -311,6 +349,15 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                 if (error != null)
                     Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "onPlayerErrorChanged: ", error);
+            }
+        });
+
+        mediaPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onVideoSizeChanged(VideoSize videoSize) {
+                Player.Listener.super.onVideoSizeChanged(videoSize);
+                surfaceView.getHolder().setFixedSize(videoSize.width, videoSize.height);
+
             }
         });
 
@@ -365,7 +412,13 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     lastRecordedBox.setVisibility(View.GONE);
                     buttonView.setCompoundDrawablesWithIntrinsicBounds(null, getResources().getDrawable(R.drawable.stop1), null, null);
                     AudioEngine.toggleVideoRecording(true);
-                    camera2.startRecording();
+
+                    camera2.closeCamera();
+                    camera2 = new Camera2(mainActivity);
+                    camera2.recording = true ;
+
+                    camera2.openCamera();
+//                    camera2.startRecording();
                 } else {
                     AudioEngine.toggleVideoRecording(false);
                     camera2.stopRecording();
@@ -377,6 +430,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
                     timer.setVisibility(View.GONE);
                     MediaItem mediaItem = MediaItem.fromUri(filename + ".mp4");
+                    mFilename = filename + ".mp4" ;
                     mediaPlayer.setMediaItem(mediaItem);
                     mediaPlayer.prepare();
 
