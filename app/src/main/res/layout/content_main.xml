@@ -49,7 +49,7 @@
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@id/l1"
         android:visibility="gone"
-        android:background="@drawable/semi_trans"
+        android:background="@drawable/dark_trans"
         android:id="@+id/last_recorded_box">
         <ToggleButton
             android:layout_width="30dp"
@@ -80,7 +80,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:background="@drawable/rounded_corners_transparent"
+        android:background="@drawable/dark_trans"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -245,7 +245,7 @@
         app:layout_constrainedHeight="true"
 
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/l2"
+        app:layout_constraintTop_toBottomOf="@id/last_recorded_box"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
@@ -254,7 +254,7 @@
             android:id="@+id/l3"
             android:padding="10dp"
             android:layout_margin="15dp"
-            android:background="@drawable/rounded_corners_transparent"
+            android:background="@drawable/dark_trans"
             android:orientation="horizontal">
             <TextView
                 android:layout_width="wrap_content"

@@ -296,8 +296,8 @@ public class Camera2 {
                 }
             }, null);
         } catch (CameraAccessException e) {
-            Toast.makeText(mainActivity, "Failed to start camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+//            Toast.makeText(mainActivity, "Failed to start camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "createCameraPreview: toast: ", e);
         }
     }
 

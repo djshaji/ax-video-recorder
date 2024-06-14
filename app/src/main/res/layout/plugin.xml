@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_margin="5dp"
     android:layout_width="match_parent"
-    android:background="@drawable/semi_trans"
+    android:background="@drawable/dark_trans"
     android:layout_height="wrap_content">
 
     <LinearLayout
