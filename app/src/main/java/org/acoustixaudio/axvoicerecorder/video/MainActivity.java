@@ -47,6 +47,7 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -114,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     private String mFilename;
     private FrameLayout frame;
     LinearLayout l1 ;
+    public ToggleButton orientationSwap;
 
     @Override
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
@@ -674,6 +676,21 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         requestCamera();
         camera2.openCamera();
 //        AudioEngine.pushSamples("pushToVideo");
+
+        orientationSwap = findViewById(R.id.orientation);
+        orientationSwap.setButtonDrawable(R.drawable.baseline_stay_current_portrait_24);
+        orientationSwap.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked)
+                    buttonView.setButtonDrawable(R.drawable.baseline_stay_current_landscape_24);
+                else
+                    buttonView.setButtonDrawable(R.drawable.baseline_stay_current_portrait_24);
+            }
+        });
+
+        spinner.setSelection(4);
+        toggleEffects.setChecked(true);
     }
 
     @Override
@@ -973,6 +990,8 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         if (mediaPlayer.isPlaying())
             mediaPlayer.stop();
         camera2.closeCamera();
+        if (running)
+            stopEffect();
     }
 
     public void renameFile(String oldName, int position) {

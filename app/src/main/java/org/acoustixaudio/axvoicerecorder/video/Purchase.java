@@ -46,7 +46,7 @@ public class Purchase extends AppCompatActivity {
     private PurchasesUpdatedListener purchasesUpdatedListener ;
     private BillingClient billingClient;
     AcknowledgePurchaseResponseListener acknowledgePurchaseResponseListener ;
-    public static String PRODUCT_ID = "voice_premium";
+    public static String PRODUCT_ID = "premium";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

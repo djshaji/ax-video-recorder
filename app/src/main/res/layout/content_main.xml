@@ -89,22 +89,24 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
         <LinearLayout
-            android:layout_margin="10dp"
             android:layout_width="wrap_content"
+            android:rotation="90"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <ToggleButton
                 android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_height="40dp"
                 android:textOn=""
                 android:scaleY=".6"
+                android:rotation="-90"
                 android:scaleX=".6"
                 android:id="@+id/preview"
                 android:textOff=""
                 android:background="@android:color/transparent"
                 android:drawableLeft="@drawable/baseline_volume_up_24"/>
             <TextView
+                android:layout_marginTop="-10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:enabled="false"
@@ -116,23 +118,31 @@
 
         </LinearLayout>
         <ToggleButton
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:textOff=""
+            android:textOn=""
+            android:id="@+id/orientation"
+            android:background="@android:color/transparent"/>
+
+        <ToggleButton
             android:textOff=""
             android:textOn=""
             android:scaleY=".6"
             android:scaleX=".6"
-            android:layout_width="40dp"
-            android:layout_height="50dp"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
             android:background="@drawable/baseline_tune_24"
             android:layout_gravity="center"
             android:gravity="center"
             android:id="@+id/show_effects"/>
         <ToggleButton
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textOff=""
-            android:scaleY=".7"
-            android:scaleX=".7"
+            android:scaleY=".6"
+            android:scaleX=".6"
             android:drawableTop="@drawable/record_1"
             android:textOn=""
             android:background="@android:color/transparent"

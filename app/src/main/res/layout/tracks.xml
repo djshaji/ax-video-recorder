@@ -203,6 +203,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
+            android:textStyle="bold"
+            android:drawableLeft="@drawable/baseline_info_24"
             android:outlineSpotShadowColor="@color/white"
             android:outlineAmbientShadowColor="@color/white"
             android:shadowColor="@color/white"

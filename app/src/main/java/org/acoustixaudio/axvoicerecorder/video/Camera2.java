@@ -31,6 +31,7 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
@@ -77,6 +78,7 @@ public class Camera2 {
     private Surface mInputSurface;
     public String filename;
     private SharedPreferences preferences;
+    private OrientationEventListener orientationEventListener;
 
     class Timestamp {
         long start = 0;
@@ -120,6 +122,7 @@ public class Camera2 {
     private Size imageDimension;
     private ImageReader imageReader;
     ArrayList<String> cameras;
+    int sensorOrientation = 0;
     HashMap<String, CameraCharacteristics> cameraCharacteristicsHashMap;
     private boolean mFlashSupported;
     private Handler mBackgroundHandler;
@@ -157,6 +160,15 @@ public class Camera2 {
         manager = (CameraManager) mainActivity.getSystemService(mainActivity.CAMERA_SERVICE);
         cameras = new ArrayList<>();
         cameraCharacteristicsHashMap = new HashMap<>();
+        orientationEventListener = new OrientationEventListener(mainActivity) {
+            @Override
+            public void onOrientationChanged(int orientation) {
+                Log.i(TAG, "onOrientationChanged: " + orientation);
+                sensorOrientation = orientation;
+            }
+        };
+
+//        orientationEventListener.enable();
 
         Log.e(TAG, "is camera open");
         try {
@@ -340,6 +352,9 @@ public class Camera2 {
         mWidth = imageDimension.getWidth();
         mHeight = imageDimension.getHeight();
         mBitRate = preferences.getInt ("vbitrate", 1000) * 1000;
+        Log.d(TAG, String.format ("[config]: %d:%d",
+                mBitRate,
+                preferences.getInt("abitrate", -1)));
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, mWidth, mHeight);
 
         // Set some properties.  Failing to specify some of these can cause the MediaCodec
@@ -527,11 +542,43 @@ public class Camera2 {
 
         mTrackIndex = -1;
         mMuxerStarted = false;
-        int videoRecordOrientation = Integer.parseInt(mainActivity.defaultSharedPreferences.getString("camera_orientation", "0"));
-        videoRecordOrientation += cameraCharacteristicsHashMap.get(cameraId).get(CameraCharacteristics.SENSOR_ORIENTATION) ;
-        if (videoRecordOrientation >= 360)
+        int videoRecordOrientation = 0 ;
+//
+//        if (sensorOrientation > 45 && sensorOrientation < 135)
+//            videoRecordOrientation = 90 ;
+//        else if (sensorOrientation > 135 && sensorOrientation < 225)
+//            videoRecordOrientation = 180 ;
+//        else if (sensorOrientation > 225 && sensorOrientation < 315)
+//            videoRecordOrientation = 270 ;
+//
+//        if (mainActivity.swapCamera.isChecked())
+//            videoRecordOrientation -= cameraCharacteristicsHashMap.get(cameraId).get(CameraCharacteristics.SENSOR_ORIENTATION) ;
+//        else
+//            videoRecordOrientation = cameraCharacteristicsHashMap.get(cameraId).get(CameraCharacteristics.SENSOR_ORIENTATION) - videoRecordOrientation;
+//        if (videoRecordOrientation < 0)
+//            videoRecordOrientation = 0 ;
+//        else if (videoRecordOrientation > 360)
+//            videoRecordOrientation = 360 ;
+//
+//        int sign = 0 ;
+//        if (mainActivity.swapCamera.isChecked())
+//            sign = 1 ;
+//        else
+//            sign = -1;
+
+//        videoRecordOrientation = (sensorOrientation - cameraCharacteristicsHashMap.get(cameraId).get(CameraCharacteristics.SENSOR_ORIENTATION)  * sign + 360) % 360;
+
+        if (mainActivity.swapCamera.isChecked() && ! mainActivity.orientationSwap.isChecked())
+            videoRecordOrientation = 90 ;
+
+        else if (mainActivity.swapCamera.isChecked() && mainActivity.orientationSwap.isChecked())
             videoRecordOrientation = 0 ;
+
+        else if (! mainActivity.swapCamera.isChecked() && ! mainActivity.orientationSwap.isChecked())
+            videoRecordOrientation = 270 ;
+
         mMuxer.setOrientationHint(videoRecordOrientation);
+        Log.i(TAG, "prepareEncoder: set orientation " + videoRecordOrientation);
         Log.d(TAG, String.format ("set orientation hint: %d", cameraCharacteristicsHashMap.get(cameraId).get(CameraCharacteristics.SENSOR_ORIENTATION)));
 
         presentationTimeUs = System.nanoTime()/1000;

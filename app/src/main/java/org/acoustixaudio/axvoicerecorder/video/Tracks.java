@@ -59,6 +59,8 @@ public class Tracks extends Fragment {
     LinearLayout playerWindow ;
     boolean isDrums = false ;
     BitmapDrawable play, pause, reset ;
+    private int screenWidth;
+    private int screenHeight;
 
     public Tracks () {
         tracksAdapter = new TracksAdapter();
@@ -169,12 +171,30 @@ public class Tracks extends Fragment {
             }
         });
 
+        screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenHeight = context.getResources().getDisplayMetrics().heightPixels;
 
         player.addListener(new Player.Listener() {
             @Override
             public void onVideoSizeChanged(VideoSize videoSize) {
                 Player.Listener.super.onVideoSizeChanged(videoSize);
-                surfaceView.getHolder().setFixedSize(videoSize.width, videoSize.height);
+                if (videoSize.width < screenWidth && videoSize.height < screenHeight)
+                    surfaceView.getHolder().setFixedSize(videoSize.width, videoSize.height);
+                else {
+                    int width = 0 ;
+                    int height = 0 ;
+                    float ratio = (float) videoSize.width / videoSize.height;
+                    if (videoSize.width > videoSize.height) {
+                        width = screenWidth ;
+                        height = (int) (screenWidth / ratio);
+                    } else {
+                        height = screenHeight ;
+                        width = (int) (screenHeight / ratio);
+                    }
+
+                    Log.d(TAG, String.format ("[video size]: %d x %d from %d x %d {%d x %d}", width, height, videoSize.width, videoSize.height, screenWidth, screenHeight));
+                    surfaceView.getHolder().setFixedSize(width, height);
+                }
             }
             @Override
             public void onPlaybackStateChanged(int playbackState) {

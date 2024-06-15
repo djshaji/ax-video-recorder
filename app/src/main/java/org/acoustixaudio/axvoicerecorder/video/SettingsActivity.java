@@ -178,9 +178,9 @@ public class SettingsActivity extends AppCompatActivity {
             about.setSummary(
                     new StringJoiner(" ")
                             .add("Version")
-//                            .add (BuildConfig.VERSION_NAME)
+                            .add (BuildConfig.VERSION_NAME)
                             .add("Build")
-//                            .add(String.valueOf(BuildConfig.VERSION_CODE))
+                            .add(String.valueOf(BuildConfig.VERSION_CODE))
                             .toString()
             );
 
