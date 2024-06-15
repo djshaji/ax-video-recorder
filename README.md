@@ -35,3 +35,9 @@ With this app, you can directly record high quality studio-like audio with post 
   
 ## Completely open source
 See for yourself what the app actually does, or use this code to create something new!
+
+## Screenshots
+![Screenshot_20240615-203133](https://github.com/djshaji/ax-video-recorder/assets/17184025/170877dd-38b0-4fa8-a542-d77842a65048)
+![Screenshot_20240615-203137](https://github.com/djshaji/ax-video-recorder/assets/17184025/9e174b06-fda0-4808-8b25-4f2276889fbd)
+![Screenshot_20240615-203147](https://github.com/djshaji/ax-video-recorder/assets/17184025/f1b45d98-b08d-4261-a338-389776507b26)
+![Screenshot_20240615-203207](https://github.com/djshaji/ax-video-recorder/assets/17184025/c99abae5-3ffd-4ce0-b03c-7f84b5336878)
