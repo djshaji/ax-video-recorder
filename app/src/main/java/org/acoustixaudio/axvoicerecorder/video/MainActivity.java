@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     private FrameLayout frame;
     LinearLayout l1 ;
     public ToggleButton orientationSwap;
+    private int screenWidth;
+    private int screenHeight;
+    private boolean nag = true;
 
     @Override
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
@@ -204,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 //        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
         defaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        ToggleButton toggleEffects = findViewById(R.id.show_effects);
 
         l1 = findViewById(R.id.l1);
 
@@ -223,6 +227,11 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
         videoTexture = findViewById(R.id.texture);
         swapCamera = findViewById(R.id.swap);
+
+        LinearLayout effects = findViewById(R.id.effects);
+
+        screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenHeight = context.getResources().getDisplayMetrics().heightPixels;
 
         swapCamera.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -331,6 +340,9 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                 Log.i(TAG, "onIsPlayingChanged: " + isPlaying);
                 Player.Listener.super.onIsPlayingChanged(isPlaying);
                 if (!isPlaying) {
+                    if (toggleEffects.isChecked())
+                        effects.setVisibility(View.VISIBLE);
+
                     frame.setVisibility(View.GONE);
                     lastPlayPause.setChecked(false);
                     MediaItem mediaItem = MediaItem.fromUri(filename + ".mp4");
@@ -340,6 +352,9 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     videoTexture.setVisibility(View.VISIBLE);
                     l1.setVisibility(View.VISIBLE);
                 } else {
+                    if (toggleEffects.isChecked())
+                        effects.setVisibility(View.GONE);
+
                     videoTexture.setVisibility(View.GONE);
                     l1.setVisibility(View.GONE);
                     frame.setVisibility(View.VISIBLE);
@@ -371,6 +386,25 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             public void onVideoSizeChanged(VideoSize videoSize) {
                 Player.Listener.super.onVideoSizeChanged(videoSize);
                 surfaceView.getHolder().setFixedSize(videoSize.width, videoSize.height);
+                if (videoSize.width < screenWidth && videoSize.height < screenHeight) {
+                    surfaceView.getHolder().setFixedSize(videoSize.width, videoSize.height);
+                    Log.d(TAG, String.format ("[video size]: %d x %d", videoSize.width, videoSize.height));
+                }
+                else {
+                    int width = 0 ;
+                    int height = 0 ;
+                    float ratio = (float) videoSize.width / videoSize.height;
+                    if (videoSize.width > videoSize.height) {
+                        width = screenWidth ;
+                        height = (int) (screenWidth / ratio);
+                    } else {
+                        height = screenHeight ;
+                        width = (int) (screenHeight / ratio);
+                    }
+
+                    Log.d(TAG, String.format ("[video size]: %d x %d from %d x %d {%d x %d}", width, height, videoSize.width, videoSize.height, screenWidth, screenHeight));
+                    surfaceView.getHolder().setFixedSize(width, height);
+                }
 
             }
         });
@@ -454,6 +488,11 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     camera2.closeCamera();
                     camera2 = new Camera2(mainActivity);
                     camera2.openCamera();
+
+                    if (nag && ! proVersion) {
+                        nag = false ;
+                        startActivity(new Intent(mainActivity, org.acoustixaudio.axvoicerecorder.video.Purchase.class));
+                    }
                 }
             }
         });
@@ -621,12 +660,10 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             }
         });
 
-        ToggleButton toggleEffects = findViewById(R.id.show_effects);
-        LinearLayout effects = findViewById(R.id.effects);
-
         toggleEffects.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.d(TAG, String.format ("toggle effects: %b", isChecked));
                 if (isChecked)
                     effects.setVisibility(View.VISIBLE);
                 else
@@ -664,12 +701,15 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         loadPlugins();
         applySettings();
 
-//        if (BuildConfig.BUILD_TYPE.equals("debug")) {
-//            proVersion = true ;
-//        }
+        if (BuildConfig.BUILD_TYPE.equals("debug")) {
+            proVersion = true ;
+        }
 
         if (proVersion) {
             ((TextView) findViewById(R.id.header_app_name)).setText("Premium");
+            ((TextView) findViewById(R.id.pv)).setText("Premium");
+            ((TextView) findViewById(R.id.pv)).setTextSize(8);
+
         }
 
         camera2 = new Camera2(this);
@@ -691,6 +731,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
         spinner.setSelection(4);
         toggleEffects.setChecked(true);
+        startEffect();
     }
 
     @Override
@@ -1271,6 +1312,16 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             handler.postDelayed(r, 1000);
         } else {
 //            record.setChecked(false);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            camera2.closeCamera();
+            camera2.openCamera();
+            if (!isRecordPermissionGranted()) {
+                requestRecordPermission();
+            }
+
         }
     }
 

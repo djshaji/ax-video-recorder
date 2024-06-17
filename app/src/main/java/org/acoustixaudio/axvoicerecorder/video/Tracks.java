@@ -370,8 +370,11 @@ public class Tracks extends Fragment {
         File [] files = dir.listFiles();
         Log.d(TAG, "load: " + files.length + " files found");
         for (int i = 0 ; i < files.length; i ++) {
-            Log.d(TAG, "load: adding file " + files[i].getAbsolutePath());
-            tracksAdapter.add(files [i].getAbsolutePath());
+            Log.d(TAG, "load: adding file " + files[i].getAbsolutePath() + " " + files [i].length());
+            if (files [i].length() > 0)
+                tracksAdapter.add(files [i].getAbsolutePath());
+            else
+                Log.wtf(TAG, "load: skipping file with 0 size");
         }
     }
 

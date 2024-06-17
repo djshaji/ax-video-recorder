@@ -106,6 +106,7 @@
                 android:background="@android:color/transparent"
                 android:drawableLeft="@drawable/baseline_volume_up_24"/>
             <TextView
+                android:id="@+id/pv"
                 android:layout_marginTop="-10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
