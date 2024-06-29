@@ -2,6 +2,7 @@ package org.acoustixaudio.axvoicerecorder.video;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
@@ -54,6 +55,15 @@ public class Purchase extends AppCompatActivity {
         setContentView(R.layout.activity_purchase);
         TextView priceView = findViewById(R.id.price);
         context = this;
+
+        TextView close = findViewById(R.id.close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((Activity) context).finish ();
+            }
+        });
+
         TextView oldPrice = findViewById(R.id.old_price);
         oldPrice.setPaintFlags(oldPrice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         acknowledgePurchaseResponseListener = new AcknowledgePurchaseResponseListener() {

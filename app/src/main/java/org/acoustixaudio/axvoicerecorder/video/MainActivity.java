@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     public ToggleButton orientationSwap;
     private int screenWidth;
     private int screenHeight;
-    private boolean nag = true;
+    private int nag = 0;
 
     @Override
     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         swapCamera.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (running) {
+                if (record.isChecked()) {
                     Toast.makeText(MainActivity.this, "Cannot switch camera while recording", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -489,10 +489,11 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
                     camera2 = new Camera2(mainActivity);
                     camera2.openCamera();
 
-                    if (nag && ! proVersion) {
-                        nag = false ;
+                    if (nag == 2 && ! proVersion) {
                         startActivity(new Intent(mainActivity, org.acoustixaudio.axvoicerecorder.video.Purchase.class));
                     }
+
+                    nag ++ ;
                 }
             }
         });

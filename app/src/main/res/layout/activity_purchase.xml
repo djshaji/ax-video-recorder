@@ -37,6 +37,8 @@
                 android:text="@string/limit"
                 android:textColor="@color/white"
                 android:fontFamily="@font/comfortaa"
+                android:id="@+id/close"
+                android:drawableRight="@drawable/baseline_close_24"
                 android:background="@drawable/rounded_corners_transparent"/>
             <LinearLayout
                 app:layout_constraintTop_toTopOf="parent"
